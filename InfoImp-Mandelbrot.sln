@@ -2,6 +2,10 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InfoImp-Mandelbrot", "InfoImp-Mandelbrot\InfoImp-Mandelbrot.csproj", "{9E2F5E9B-8E66-4918-BE25-8B57E04E1233}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InfoImp-Mandelbrot.Wpf", "InfoImp-Mandelbrot.Wpf\InfoImp-Mandelbrot.Wpf.csproj", "{43F6EE27-BEB0-4812-AC0B-AD6C12D923F2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InfoImp-Mandelbrot.Gtk", "InfoImp-Mandelbrot.Gtk\InfoImp-Mandelbrot.Gtk.csproj", "{17FD7C54-F71A-4C31-B7FF-DF882A670458}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -12,5 +16,13 @@ Global
 		{9E2F5E9B-8E66-4918-BE25-8B57E04E1233}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9E2F5E9B-8E66-4918-BE25-8B57E04E1233}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9E2F5E9B-8E66-4918-BE25-8B57E04E1233}.Release|Any CPU.Build.0 = Release|Any CPU
+		{43F6EE27-BEB0-4812-AC0B-AD6C12D923F2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{43F6EE27-BEB0-4812-AC0B-AD6C12D923F2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{43F6EE27-BEB0-4812-AC0B-AD6C12D923F2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{43F6EE27-BEB0-4812-AC0B-AD6C12D923F2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{17FD7C54-F71A-4C31-B7FF-DF882A670458}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{17FD7C54-F71A-4C31-B7FF-DF882A670458}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{17FD7C54-F71A-4C31-B7FF-DF882A670458}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{17FD7C54-F71A-4C31-B7FF-DF882A670458}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
