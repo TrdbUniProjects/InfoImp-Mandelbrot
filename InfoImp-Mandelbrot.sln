@@ -1,0 +1,16 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InfoImp-Mandelbrot", "InfoImp-Mandelbrot\InfoImp-Mandelbrot.csproj", "{9E2F5E9B-8E66-4918-BE25-8B57E04E1233}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{9E2F5E9B-8E66-4918-BE25-8B57E04E1233}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9E2F5E9B-8E66-4918-BE25-8B57E04E1233}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9E2F5E9B-8E66-4918-BE25-8B57E04E1233}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9E2F5E9B-8E66-4918-BE25-8B57E04E1233}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
