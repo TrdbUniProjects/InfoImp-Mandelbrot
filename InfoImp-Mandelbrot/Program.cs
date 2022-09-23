@@ -1,3 +1,9 @@
-﻿// See https://aka.ms/new-console-template for more information
+﻿using Eto.Forms;
 
-Console.WriteLine("Hello, World!");
+namespace Mandelbrot {
+    public class MainForm : Form {
+        public static void Main(String[] args) {
+            new Application().Run(new MainForm());
+        }
+    }
+}
