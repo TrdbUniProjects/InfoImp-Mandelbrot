@@ -5,6 +5,7 @@
         <RootNamespace>InfoImp_Mandelbrot.Wpf</RootNamespace>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <OutputType>WinExe</OutputType>
     </PropertyGroup>
 
     <ItemGroup>
