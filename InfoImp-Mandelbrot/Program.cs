@@ -1,35 +1,33 @@
-﻿using Eto.Drawing;
+﻿using System.Diagnostics;
+using Eto.Drawing;
 using Eto.Forms;
 
 namespace InfoImp_Mandelbrot {
     public class MainForm : Form {
-
+        private const int MandelWidth = 400;
+        private const int MandelHeight = 400;
+        
         public MainForm() {
             this.Title = "INFOIMPL Mandelbrot";
-            this.Size = new Size(440, 440 + 250);
-
+            this.Size = new Size(MandelWidth + 40, MandelHeight + 40 + 250);
+            
             KeyValuePair<TableRow, TextBox> middleX = this.LabelledInputRow("Midden X");
             KeyValuePair<TableRow, TextBox> middleY = this.LabelledInputRow("Midden Y");
             KeyValuePair<TableRow, TextBox> scale = this.LabelledInputRow("Schaal");
             KeyValuePair<TableRow, TextBox> maxCount = this.LabelledInputRow("Max Aantal");
             
-            Bitmap bitmap = new Bitmap(400, 400, PixelFormat.Format24bppRgb);
-            Graphics graphics = new Graphics(bitmap);
+            middleX.Value.Text = "0";
+            middleY.Value.Text = "0";
+            scale.Value.Text = "5";
+            maxCount.Value.Text = "100";
+            
             
             Button goBtn = new Button {
                 Width = 400,
                 Text = "Foo",
             };
-            goBtn.Click += (_, _) => {
-                ThreadStart work = () => {
-                    Console.WriteLine("Drawing mandelbrot!");
-                    PaintMandelbrot(graphics, 0, 0, 0.05, 50);
-                };
-                Thread thread = new Thread(work);
-                thread.Start();
-            };
 
-            this.Padding = new Padding(20);
+            Bitmap mandelbrotBitmap = new Bitmap(MandelWidth, MandelHeight, PixelFormat.Format24bppRgb);
             this.Content = new StackLayout {
                 Items = {
                     new TableLayout {
@@ -42,49 +40,60 @@ namespace InfoImp_Mandelbrot {
                         }
                     },
                     goBtn,
-                    bitmap,
+                    mandelbrotBitmap,
                 }
             }; 
-        }
-
-        void PaintMandelbrot(Graphics g, int cx, int cy, double scale, int limit) {
-            for (int x = 0; x <= 400; x++) {
-                for (int y = 0; y <= 400; y++) {
-                    int mandelbrot = this.CalcMandelbrotForPoint(x, y, cx, cy, scale, limit);
-                    Console.WriteLine(mandelbrot);
-                    
-                    if (mandelbrot % 2 == 0) {
-                        g.FillRectangle(new SolidBrush(Colors.Black), x, y, 1, 1);
-                    } else {
-                        g.FillRectangle(new SolidBrush(Colors.White), x, y, 1, 1);
-                    }
-                    
-                    g.Flush();
-                }
-            }
             
-            Console.WriteLine("Done!");
-        }
-        
-        int CalcMandelbrotForPoint(int cx, int cy, int x, int y, double scale, int limit) {
-            int mandelX = cx;
-            int mandelY = cy;
+            goBtn.Click += (_, _) => {
 
-            int idx;
-            for (idx = 0; Distance(mandelX, mandelY, cx, cy) < scale && idx < limit; idx++) {
-                mandelX = mandelX * mandelX - mandelY * mandelY + x;
-                mandelY = 2 * mandelX * mandelY + y;
-            }
+                double cMiddleX = double.Parse(middleX.Value.Text);
+                double cMiddleY = double.Parse(middleY.Value.Text);
+                double mandelScale = double.Parse(scale.Value.Text);
+                int mandelLimit = int.Parse(maxCount.Value.Text);
+                
+                // We generate the mandelbrot in a new thread to avoid
+                // stalling the main UI
+                ThreadStart work = () => {
+                    Console.WriteLine("Drawing mandelbrot!");
 
-            return idx;
-        }
+                    Stopwatch timer = new System.Diagnostics.Stopwatch();
+                    timer.Start();
 
-        int Distance(int xa, int ya, int xb, int yb) {
-            return (int) Math.Round(
-                Math.Sqrt(
-                    (Math.Pow(xa, 2) + Math.Pow(ya, 2)) - (Math.Pow(xb, 2) + Math.Pow(yb, 2))
-                )
-            );
+                    Color[,] mandelSet = Mandelbrot.GenerateMandelbrot(
+                        mandelLimit,
+                        new Size(MandelWidth, MandelHeight),
+                        cMiddleX - mandelScale / 2D,
+                        cMiddleX + mandelScale / 2D,
+                        cMiddleY - mandelScale / 2D,
+                        cMiddleY + mandelScale / 2D,
+                        mandelScale
+                    );
+                    
+                    timer.Stop();
+                    Console.WriteLine($"Generating mandelbrot done. Took {timer.ElapsedMilliseconds} ms");
+
+                    // We set the bitmap pixel's seperately, to allow pure benchmarking
+                    // of the generator function
+                    Bitmap bitmap = new Bitmap(MandelWidth, MandelHeight, PixelFormat.Format24bppRgb);
+                    for (int x = 0; x < MandelWidth; x++) {
+                        for (int y = 0; y < MandelHeight; y++) {
+                            // TODO use pixel pointer directly for a speedup
+                            bitmap.SetPixel(x, y, mandelSet[x, y]);
+                        }
+                    }
+
+                    Application.Instance.Invoke(() => {
+                        StackLayout layout = (StackLayout)this.Content;
+                        layout.Items.RemoveAt(layout.Items.Count - 1);
+                        layout.Items.Add(bitmap);
+                    });
+                };
+                Thread thread = new Thread(work);
+                thread.Start();
+            };
+
+            this.Padding = new Padding(20);
+
         }
 
         private KeyValuePair<TableRow, TextBox> LabelledInputRow(string label) {
