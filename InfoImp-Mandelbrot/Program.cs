@@ -46,8 +46,8 @@ namespace InfoImp_Mandelbrot {
             
             goBtn.Click += (_, _) => {
 
-                double cMiddleX = double.Parse(middleX.Value.Text);
-                double cMiddleY = double.Parse(middleY.Value.Text);
+                int cMiddleX = int.Parse(middleX.Value.Text);
+                int cMiddleY = int.Parse(middleY.Value.Text);
                 double mandelScale = double.Parse(scale.Value.Text);
                 int mandelLimit = int.Parse(maxCount.Value.Text);
                 
@@ -59,7 +59,7 @@ namespace InfoImp_Mandelbrot {
                     Stopwatch timer = new System.Diagnostics.Stopwatch();
                     timer.Start();
 
-                    Color[,] mandelSet = Mandelbrot.GenerateMandelbrot(
+                 /*   int[,] mandelSet = Mandelbrot.GenerateMandelbrot(
                         mandelLimit,
                         new Size(MandelWidth, MandelHeight),
                         cMiddleX - mandelScale / 2D,
@@ -68,6 +68,15 @@ namespace InfoImp_Mandelbrot {
                         cMiddleY + mandelScale / 2D,
                         mandelScale
                     );
+                   */
+
+                 int[,] mandelSet = Mandelbrot.GenerateMandelbrotV2(
+                     cMiddleX,
+                     cMiddleY,
+                     mandelScale,
+                     mandelLimit,
+                     400
+                 );
                     
                     timer.Stop();
                     Console.WriteLine($"Generating mandelbrot done. Took {timer.ElapsedMilliseconds} ms");
@@ -78,7 +87,7 @@ namespace InfoImp_Mandelbrot {
                     for (int x = 0; x < MandelWidth; x++) {
                         for (int y = 0; y < MandelHeight; y++) {
                             // TODO use pixel pointer directly for a speedup
-                            bitmap.SetPixel(x, y, mandelSet[x, y]);
+                            bitmap.SetPixel(x, y, Color.FromArgb(mandelSet[x, y]));
                         }
                     }
 

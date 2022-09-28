@@ -4,9 +4,47 @@ using Eto.Drawing;
 namespace InfoImp_Mandelbrot; 
 
 public static class Mandelbrot {
-    public static Color[,] GenerateMandelbrot(int limit, Size size, double xMin, double xMax, double yMin, double yMax, double scale) {
-        Color[,] result = new Color[size.Width, size.Height];
-        
+
+    private static int AdjustColorScale(float i) {
+        return (int)Math.Floor(255 * i);
+    }
+    private static int ColorToRgb(Color c) {
+        int rgb = AdjustColorScale(c.R);
+        rgb = (rgb << 8) + AdjustColorScale(c.G);
+        rgb = (rgb << 8) + AdjustColorScale(c.B);
+
+        return rgb;
+    }
+
+
+    private static int Distance(int xa, int ya, int xb, int yb) {
+        return (int) Math.Sqrt((xa * xa + ya * ya) - (xb * xb + yb * yb));
+    }
+    public static int[,] GenerateMandelbrotV2(int cx, int cy, double scale, int limit, int size) {
+        int[,] result = new int[size, size];
+        for (int px = 0; px < size; px++) {
+            for (int py = 0; py < size; py++) {
+                int iteration = 0;
+
+                int a = 0;
+                int b = 0;
+
+                do {
+                    a = (a * a - b * b + px);
+                    b = (2 * a * b + py);
+
+                    iteration++;
+                } while (iteration < limit && Distance(cx, cy, a, b) < scale);
+
+                result[px, py] = GetPixelColor(iteration).ToArgb();
+            }
+        }
+
+        return result;
+    }
+
+    public static int[,] GenerateMandelbrot(int limit, Size size, double xMin, double xMax, double yMin, double yMax, double scale) {
+        int[,] result = new int[size.Width, size.Height];
         for (int pixX = 0; pixX < size.Width; pixX++) {
             for (int pixY = 0; pixY < size.Height; pixY++) {
                 double x = ((xMax - xMin) * pixX) / (size.Width - 1) + xMin;
@@ -20,7 +58,7 @@ public static class Mandelbrot {
                     b = 2 * a * b + y;
                     iterations++;
                 } while (iterations < limit && a * a + b * b < scale);
-
+ 
                 Color color;
                 if (iterations > limit) {
                     color = Colors.Black;
@@ -29,7 +67,7 @@ public static class Mandelbrot {
                     
                 }
                 
-                result[pixX, pixY] = color;
+                result[pixX, pixY] = color.ToArgb();
             }
         }
         
@@ -37,22 +75,6 @@ public static class Mandelbrot {
     }
 
     private static Color GetPixelColor(int mandelnr) {
-        if (mandelnr < 5) {
-            return Colors.Aqua;
-        }
-
-        if (mandelnr < 20) {
-            return Colors.Orange;
-        }
-
-        if (mandelnr < 50) {
-            return Colors.Red;
-        }
-        
-        if (mandelnr < 100) {
-            return Colors.Green;
-        }
-
         return mandelnr % 2 == 0 ? Colors.Aquamarine : Colors.Azure;
     }
 }
