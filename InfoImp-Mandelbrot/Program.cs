@@ -11,16 +11,16 @@ namespace InfoImp_Mandelbrot {
             this.Title = "INFOIMPL Mandelbrot";
             this.Size = new Size(MandelWidth + 40, MandelHeight + 40 + 250);
             
-            KeyValuePair<TableRow, TextBox> middleX = this.LabelledInputRow("Midden X");
-            KeyValuePair<TableRow, TextBox> middleY = this.LabelledInputRow("Midden Y");
-            KeyValuePair<TableRow, TextBox> scale = this.LabelledInputRow("Schaal");
-            KeyValuePair<TableRow, TextBox> maxCount = this.LabelledInputRow("Max Aantal");
+            KeyValuePair<TableRow, TextBox> middleXField = LabelledInputRow("Midden X");
+            KeyValuePair<TableRow, TextBox> middleYField = LabelledInputRow("Midden Y");
+            KeyValuePair<TableRow, TextBox> scaleField = LabelledInputRow("Schaal");
+            KeyValuePair<TableRow, TextBox> maxCountField = LabelledInputRow("Max Aantal");
             
-            middleX.Value.Text = "0";
-            middleY.Value.Text = "0";
-            scale.Value.Text = "5";
-            maxCount.Value.Text = "100";
-            
+            // Default values
+            middleXField.Value.Text = "0";
+            middleYField.Value.Text = "0";
+            scaleField.Value.Text = "1";
+            maxCountField.Value.Text = "100";
             
             Button goBtn = new Button {
                 Width = 400,
@@ -33,10 +33,10 @@ namespace InfoImp_Mandelbrot {
                     new TableLayout {
                         Spacing = new Size(0, 10),
                         Rows = {
-                            middleX.Key,
-                            middleY.Key,
-                            scale.Key,
-                            maxCount.Key,
+                            middleXField.Key,
+                            middleYField.Key,
+                            scaleField.Key,
+                            maxCountField.Key,
                         }
                     },
                     goBtn,
@@ -46,66 +46,39 @@ namespace InfoImp_Mandelbrot {
             
             goBtn.Click += (_, _) => {
 
-                int cMiddleX = int.Parse(middleX.Value.Text);
-                int cMiddleY = int.Parse(middleY.Value.Text);
-                double mandelScale = double.Parse(scale.Value.Text);
-                int mandelLimit = int.Parse(maxCount.Value.Text);
+                int centerX = int.Parse(middleXField.Value.Text);
+                int centerY = int.Parse(middleYField.Value.Text);
+                double scale = double.Parse(scaleField.Value.Text);
+                int limit = int.Parse(maxCountField.Value.Text);
+
+                int xMin = centerX - (MandelWidth / 2) + centerX;
+                int xMax = centerX + (MandelWidth / 2) + centerX;
+
+                Console.WriteLine($"min: {xMin} max: {xMax}");
                 
-                // We generate the mandelbrot in a new thread to avoid
-                // stalling the main UI
-                ThreadStart work = () => {
-                    Console.WriteLine("Drawing mandelbrot!");
+                int yMin = centerY - (MandelHeight / 2) + centerY;
+                int yMax = centerY + (MandelHeight / 2) + centerY;
 
-                    Stopwatch timer = new System.Diagnostics.Stopwatch();
-                    timer.Start();
-
-                 /*   int[,] mandelSet = Mandelbrot.GenerateMandelbrot(
-                        mandelLimit,
-                        new Size(MandelWidth, MandelHeight),
-                        cMiddleX - mandelScale / 2D,
-                        cMiddleX + mandelScale / 2D,
-                        cMiddleY - mandelScale / 2D,
-                        cMiddleY + mandelScale / 2D,
-                        mandelScale
-                    );
-                   */
-
-                 int[,] mandelSet = Mandelbrot.GenerateMandelbrotV2(
-                     cMiddleX,
-                     cMiddleY,
-                     mandelScale,
-                     mandelLimit,
-                     400
-                 );
-                    
-                    timer.Stop();
-                    Console.WriteLine($"Generating mandelbrot done. Took {timer.ElapsedMilliseconds} ms");
-
-                    // We set the bitmap pixel's seperately, to allow pure benchmarking
-                    // of the generator function
-                    Bitmap bitmap = new Bitmap(MandelWidth, MandelHeight, PixelFormat.Format24bppRgb);
-                    for (int x = 0; x < MandelWidth; x++) {
-                        for (int y = 0; y < MandelHeight; y++) {
-                            // TODO use pixel pointer directly for a speedup
-                            bitmap.SetPixel(x, y, Color.FromArgb(mandelSet[x, y]));
-                        }
+                Console.WriteLine("Generating...");
+                int[,] mandelbrotSet = Mandelbrot.CalculateMandelbrotSet(xMin, xMax, yMin, yMax, limit, scale);
+                BitmapData lok = mandelbrotBitmap.Lock();
+                for (int x = 0; x < MandelWidth; x++) {
+                    for (int y = 0; y < MandelHeight; y++) {
+                        Color c = Color.FromArgb(mandelbrotSet[x, y]);
+                        lok.SetPixel(x, y, c);
                     }
-
-                    Application.Instance.Invoke(() => {
-                        StackLayout layout = (StackLayout)this.Content;
-                        layout.Items.RemoveAt(layout.Items.Count - 1);
-                        layout.Items.Add(bitmap);
-                    });
-                };
-                Thread thread = new Thread(work);
-                thread.Start();
+                }
+                
+                lok.Dispose();
+                
+                Console.WriteLine("Mandelset has been drawn");
             };
 
             this.Padding = new Padding(20);
 
         }
 
-        private KeyValuePair<TableRow, TextBox> LabelledInputRow(string label) {
+        private static KeyValuePair<TableRow, TextBox> LabelledInputRow(string label) {
             TextBox box = new TextBox();
             TableRow row = new TableRow {
                 Cells = {
