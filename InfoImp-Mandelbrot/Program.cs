@@ -1,33 +1,41 @@
-﻿using System.Diagnostics;
-using Eto.Drawing;
+﻿using Eto.Drawing;
 using Eto.Forms;
 
 namespace InfoImp_Mandelbrot {
     public class MainForm : Form {
         private const int MandelWidth = 400;
         private const int MandelHeight = 400;
+
+        private readonly MandelView _mandelView;
+        private readonly TextBox _middleXField, _middleYField, _scaleField, _limitField;
         
         public MainForm() {
             this.Title = "INFOIMPL Mandelbrot";
-            this.Size = new Size(MandelWidth + 40, MandelHeight + 40 + 250);
-            
-            KeyValuePair<TableRow, TextBox> middleXField = LabelledInputRow("Midden X");
-            KeyValuePair<TableRow, TextBox> middleYField = LabelledInputRow("Midden Y");
-            KeyValuePair<TableRow, TextBox> scaleField = LabelledInputRow("Schaal");
-            KeyValuePair<TableRow, TextBox> maxCountField = LabelledInputRow("Max Aantal");
+            base.Size = new Size(MandelWidth + 40, MandelHeight + 40 + 250);
+            KeyValuePair<TableRow, TextBox> middleXField = BuildLabelledInputRow("Midden X");
+            KeyValuePair<TableRow, TextBox> middleYField = BuildLabelledInputRow("Midden Y");
+            KeyValuePair<TableRow, TextBox> scaleField = BuildLabelledInputRow("Schaal");
+            KeyValuePair<TableRow, TextBox> maxCountField = BuildLabelledInputRow("Max Aantal");
             
             // Default values
             middleXField.Value.Text = "0";
             middleYField.Value.Text = "0";
             scaleField.Value.Text = "1";
             maxCountField.Value.Text = "100";
-            
+
+            this._middleXField = middleXField.Value;
+            this._middleYField = middleYField.Value;
+            this._scaleField = scaleField.Value;
+            this._limitField = maxCountField.Value;
+
             Button goBtn = new Button {
                 Width = 400,
-                Text = "Foo",
+                Text = "Go",
             };
 
-            Bitmap mandelbrotBitmap = new Bitmap(MandelWidth, MandelHeight, PixelFormat.Format24bppRgb);
+            goBtn.Click += this.OnGoButtonClicked;
+            
+            this._mandelView = new MandelView() { Size = new Size(MandelWidth, MandelHeight) };
             this.Content = new StackLayout {
                 Items = {
                     new TableLayout {
@@ -40,45 +48,30 @@ namespace InfoImp_Mandelbrot {
                         }
                     },
                     goBtn,
-                    mandelbrotBitmap,
+                    this._mandelView
                 }
-            }; 
-            
-            goBtn.Click += (_, _) => {
-
-                int centerX = int.Parse(middleXField.Value.Text);
-                int centerY = int.Parse(middleYField.Value.Text);
-                double scale = double.Parse(scaleField.Value.Text);
-                int limit = int.Parse(maxCountField.Value.Text);
-
-                int xMin = centerX - (MandelWidth / 2) + centerX;
-                int xMax = centerX + (MandelWidth / 2) + centerX;
-
-                Console.WriteLine($"min: {xMin} max: {xMax}");
-                
-                int yMin = centerY - (MandelHeight / 2) + centerY;
-                int yMax = centerY + (MandelHeight / 2) + centerY;
-
-                Console.WriteLine("Generating...");
-                int[,] mandelbrotSet = Mandelbrot.CalculateMandelbrotSet(xMin, xMax, yMin, yMax, limit, scale);
-                BitmapData lok = mandelbrotBitmap.Lock();
-                for (int x = 0; x < MandelWidth; x++) {
-                    for (int y = 0; y < MandelHeight; y++) {
-                        Color c = Color.FromArgb(mandelbrotSet[x, y]);
-                        lok.SetPixel(x, y, c);
-                    }
-                }
-                
-                lok.Dispose();
-                
-                Console.WriteLine("Mandelset has been drawn");
             };
 
             this.Padding = new Padding(20);
-
         }
 
-        private static KeyValuePair<TableRow, TextBox> LabelledInputRow(string label) {
+        private void OnGoButtonClicked(object? sender, EventArgs args) {
+            this._mandelView.Scale = double.Parse(this._scaleField.Text);
+            this._mandelView.Limit = int.Parse(this._limitField.Text);
+                
+            int centerX = int.Parse(this._middleXField.Text);
+            this._mandelView.XMin = centerX - (MandelWidth / 2);
+            this._mandelView.XMax = centerX + (MandelWidth / 2);
+
+            int centerY = int.Parse(this._middleYField.Text);
+            this._mandelView.YMin = centerY - (MandelHeight / 2);
+            this._mandelView.YMax = centerY + (MandelHeight / 2);
+                
+            this._mandelView.Ready = true;
+            this._mandelView.Invalidate();
+        }
+
+        private static KeyValuePair<TableRow, TextBox> BuildLabelledInputRow(string label) {
             TextBox box = new TextBox();
             TableRow row = new TableRow {
                 Cells = {

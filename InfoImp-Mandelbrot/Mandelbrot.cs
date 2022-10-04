@@ -1,12 +1,10 @@
-using System;
-using System.Reflection.Metadata.Ecma335;
 using Eto.Drawing;
 
 namespace InfoImp_Mandelbrot; 
 
 public static class Mandelbrot {
 
-    private static Color[] COLORS = new Color[] {
+    private static readonly Color[] Colors = new Color[] {
         Color.FromArgb(66, 30, 15),
         Color.FromArgb(25, 7, 26),
         Color.FromArgb(9, 1, 47),
@@ -29,6 +27,18 @@ public static class Mandelbrot {
         return Math.Sqrt((xa * xa + ya * ya) - (xb * xb + yb * yb));
     }
 
+    /// <summary>
+    /// Calculate the mandelbrot set for the provided paraemeters
+    /// </summary>
+    /// <param name="xMin">The top left X coordinate from where to start calculating</param>
+    /// <param name="xMax">The bottom right X coordinate to calculate to</param>
+    /// <param name="yMin">The top left Y coordinate from where to start calculating</param>
+    /// <param name="yMax">The bottom right Y coordinate to calculate to</param>
+    /// <param name="limit">The iteration limit in the mandelbrot formula</param>
+    /// <param name="scale">The scale of the image (resolution)</param>
+    /// <returns>
+    /// The ARGB color value for every pixel in a 2D array
+    /// </returns>
     public static int[,] CalculateMandelbrotSet(int xMin, int xMax, int yMin, int yMax, int limit, double scale) {
         int width = xMax - xMin;
         int height = yMax - yMin;
@@ -37,12 +47,8 @@ public static class Mandelbrot {
 
         for (int px = 0; px < width; px++) {
             for (int py = 0; py < height; py++) {
-
-                //double x = ((double) (xMax - xMin) * px) / (width - 1) * scale - (width / 2f * scale);
-                //double y = ((double) (yMax - yMin) * py) / (height - 1) * scale - (height / 2f * scale);
-
-                double x = scale * px;
-                double y = scale * py ;
+                double x = xMin * scale + scale * px;
+                double y = yMin * scale + scale * py;
 
                 double a = 0;
                 double b = 0;
@@ -59,14 +65,13 @@ public static class Mandelbrot {
             }
         }
 
-        Console.WriteLine("Done");
         return result;
     }
     
 
     private static Color GetPixelColor(int iteration, double a, double b) {
         double smoothed = Math.Log2(Math.Log2(a * a + b * b) / 2);
-        int idx = (int)(Math.Sqrt(iteration + 10 - smoothed) * 256) % COLORS.Length;
-        return COLORS[idx];
+        int idx = (int)(Math.Sqrt(iteration + 10 - smoothed) * 256) % Colors.Length;
+        return Colors[idx];
     }
 }
