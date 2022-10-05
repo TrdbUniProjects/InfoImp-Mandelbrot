@@ -4,7 +4,13 @@ namespace InfoImp_Mandelbrot;
 
 public static class Mandelbrot {
 
-    private static readonly Color[] Colors = new Color[] {
+    public const int ColorPaletteDefault = 0;
+    public const int ColorPaletteRedscale = 1;
+    
+    /// <summary>
+    /// Precomputed default color shades
+    /// </summary>
+    private static readonly Color[] DefaultColors = new Color[] {
         Color.FromArgb(66, 30, 15),
         Color.FromArgb(25, 7, 26),
         Color.FromArgb(9, 1, 47),
@@ -23,6 +29,37 @@ public static class Mandelbrot {
         Color.FromArgb(106, 52, 3)
     };
     
+    /// <summary>
+    /// Precomputed red color shades
+    /// </summary>
+    private static readonly Color[] RedColors = new Color[] {
+        Color.FromArgb(10, 0, 0),
+        Color.FromArgb(20, 0, 0),
+        Color.FromArgb(30, 0, 0),
+        Color.FromArgb(40, 0, 0),
+        Color.FromArgb(50, 0, 0),
+        Color.FromArgb(60, 0, 0),
+        Color.FromArgb(70, 0, 0),
+        Color.FromArgb(80, 0, 0),
+        Color.FromArgb(90, 0, 0),
+        Color.FromArgb(100, 0, 0),
+        Color.FromArgb(110, 0, 0),
+        Color.FromArgb(120, 0, 0),
+        Color.FromArgb(130, 0, 0),
+        Color.FromArgb(140, 0, 0),
+        Color.FromArgb(150, 0, 0),
+        Color.FromArgb(160, 0, 0),
+        Color.FromArgb(170, 0, 0),
+        Color.FromArgb(180, 0, 0),
+        Color.FromArgb(190, 0, 0),
+        Color.FromArgb(200, 0, 0),
+        Color.FromArgb(210, 0, 0),
+        Color.FromArgb(220, 0, 0),
+        Color.FromArgb(230, 0, 0),
+        Color.FromArgb(240, 0, 0),
+        Color.FromArgb(250, 0, 0),
+    };
+    
     private static double Distance(double xa, double ya, double xb, double yb) {
         return Math.Sqrt((xa * xa + ya * ya) - (xb * xb + yb * yb));
     }
@@ -36,42 +73,57 @@ public static class Mandelbrot {
     /// <param name="yMax">The bottom right Y coordinate to calculate to</param>
     /// <param name="limit">The iteration limit in the mandelbrot formula</param>
     /// <param name="scale">The scale of the image (resolution)</param>
+    /// <param name="colorPalette"> The color palette to use</param>
     /// <returns>
     /// The ARGB color value for every pixel in a 2D array
     /// </returns>
-    public static int[,] CalculateMandelbrotSet(int xMin, int xMax, int yMin, int yMax, int limit, double scale) {
+    public static int[] CalculateMandelbrotSet(int xMin, int xMax, int yMin, int yMax, int limit, double scale, int colorPalette) {
         int width = xMax - xMin;
         int height = yMax - yMin;
-        
-        int[,] result = new int[width, height];
+
+        int[] result = new int[width * height];
+        double distanceLimit = scale * (width + height) / 2;
 
         for (int px = 0; px < width; px++) {
             for (int py = 0; py < height; py++) {
                 double x = xMin * scale + scale * px;
                 double y = yMin * scale + scale * py;
-
+                
                 double a = 0;
                 double b = 0;
 
                 int iteration = 0;
                 do {
-                    double tmpA = a = a * a - b * b + x;
+                    double tmpA = a * a - b * b + x;
                     b = 2 * a * b + y;
                     a = tmpA;
                     iteration++;
-                } while (Distance(a, b, 0, 0) < (scale * (width + height) / 2) && iteration < limit);
+                } while (Distance(a, b, 0, 0) < distanceLimit && iteration < limit);
 
-                result[px, py] = GetPixelColor(iteration, a, b).ToArgb();
+                result[width * px + py] = GetPixelColor(iteration, a, b, colorPalette).ToArgb();
             }
         }
-
+        
         return result;
     }
-    
 
-    private static Color GetPixelColor(int iteration, double a, double b) {
+    private static Color GetPixelColorWithColorSet(int iteration, double a, double b, Color[] colorSet) {
         double smoothed = Math.Log2(Math.Log2(a * a + b * b) / 2);
-        int idx = (int)(Math.Sqrt(iteration + 10 - smoothed) * 256) % Colors.Length;
-        return Colors[idx];
+        if (double.IsNaN(smoothed)) {
+            return Colors.Black;
+        }
+        int idx = (int) (Math.Sqrt(iteration + 10 - smoothed) * 256f) % colorSet.Length;
+        return colorSet[idx];
+    }
+
+    private static Color GetPixelColor(int iteration, double a, double b, int colorPalette) {
+        switch (colorPalette) {
+            case ColorPaletteDefault:
+                return GetPixelColorWithColorSet(iteration, a, b, DefaultColors);
+            case ColorPaletteRedscale:
+                return GetPixelColorWithColorSet(iteration, a, b, RedColors);
+            default:
+                throw new InvalidDataException($"Invalid color palette {colorPalette}");
+        }
     }
 }

@@ -1,20 +1,26 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
     <PropertyGroup>
         <TargetFramework>net6.0</TargetFramework>
         <RootNamespace>InfoImp_Mandelbrot.Gtk</RootNamespace>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <OutputType>WinExe</OutputType>
+        <PublishSingleFile>true</PublishSingleFile>
+        <SelfContained>true</SelfContained>
+        <RuntimeIdentifier>linux-x64</RuntimeIdentifier>
+        <PublishReadyToRun>true</PublishReadyToRun>
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="Eto.Forms" Version="2.7.1" />
-      <PackageReference Include="Eto.Platform.Gtk" Version="2.7.1" />
+        <PackageReference Include="Eto.Forms" Version="2.7.1" />
+        <PackageReference Include="Eto.Platform.Gtk" Version="2.7.1" />
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\InfoImp-Mandelbrot\InfoImp-Mandelbrot.csproj" />
+        <ProjectReference Include="..\InfoImp-Mandelbrot\InfoImp-Mandelbrot.csproj" />
+        <Content Include="..\Libmandelbrot\target\x86_64-unknown-linux-gnu\release\libmandelbrot.so">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+            <Pack>true</Pack>
+        </Content>
     </ItemGroup>
-
 </Project>
