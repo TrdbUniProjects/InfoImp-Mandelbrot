@@ -1,9 +1,12 @@
 using System.Runtime.InteropServices;
+using System.Security;
 
 namespace InfoImp_Mandelbrot; 
 
 public static class MandelbrotNative {
-    
+
+
+    [SuppressUnmanagedCodeSecurity]
     [DllImport("libmandelbrot", EntryPoint = "calculate_mandelbrot_set", CallingConvention = CallingConvention.Winapi)]
     private static extern void FFI_CalculateMandelbrotSet(
         int xMin, 
@@ -15,7 +18,20 @@ public static class MandelbrotNative {
         int colorPalette,
         int[] result);
 
+    [SuppressUnmanagedCodeSecurity]
+    [DllImport("libmandelbrot", EntryPoint = "ocl_calculate_mandelbrot_set", CallingConvention = CallingConvention.Winapi)]
+    private static extern void FFI_OCL_CalculateMandelbrotSet(
+        int xMin,
+        int xMax,
+        int yMin,
+        int yMax,
+        int limit,
+        double scale,
+        int colorPalette,
+        int[] result);
+    
     public static int[] CalculatemandelbrotSet(
+        bool useOcl,
         int xMin,
         int xMax,
         int yMin,
@@ -28,16 +44,28 @@ public static class MandelbrotNative {
         int height = yMax - yMin;
         int[] result = new int[width * height];
         
-        FFI_CalculateMandelbrotSet(
-            xMin,
-            xMax,
-            yMin,
-            yMax,
-            limit,
-            scale,
-            colorPalette,
-            result);
-        
+        if(useOcl) {
+            FFI_OCL_CalculateMandelbrotSet(
+                xMin,
+                xMax,
+                yMin,
+                yMax,
+                limit,
+                scale,
+                colorPalette,
+                result);
+        } else {
+            FFI_CalculateMandelbrotSet(
+                xMin,
+                xMax,
+                yMin,
+                yMax,
+                limit,
+                scale,
+                colorPalette,
+                result);   
+        }
+
         return result;
     }
 }

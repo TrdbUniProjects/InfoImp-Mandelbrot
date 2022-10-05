@@ -30,8 +30,9 @@ public class MandelView : Drawable {
             case InfoImp_Mandelbrot.Platform.CSharp:
                 mandelbrotSet = Mandelbrot.CalculateMandelbrotSet(this.XMin, this.XMax, this.YMin, this.YMax, this.Limit, this.Scale, this.ColorPalette);
                 break; 
+            case InfoImp_Mandelbrot.Platform.RustOcl:
             case InfoImp_Mandelbrot.Platform.Rust:
-                mandelbrotSet = MandelbrotNative.CalculatemandelbrotSet(this.XMin, this.XMax, this.YMin, this.YMax, this.Limit, this.Scale, this.ColorPalette);
+                mandelbrotSet = MandelbrotNative.CalculatemandelbrotSet(this.BackendPlatform == InfoImp_Mandelbrot.Platform.RustOcl, this.XMin, this.XMax, this.YMin, this.YMax, this.Limit, this.Scale, this.ColorPalette);
                 break;
             default:
                 throw new InvalidDataException($"Platform {this.BackendPlatform} is not implemented");

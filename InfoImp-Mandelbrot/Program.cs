@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Collections.ObjectModel;
+using System.Runtime.InteropServices;
 using Eto.Drawing;
 using Eto.Forms;
 
@@ -23,8 +24,8 @@ namespace InfoImp_Mandelbrot {
         /// </summary>
         private const int MouseDownConstantZoomMinimumDurationMs = 1000;
         
-        private readonly MandelView _mandelView;
-        private readonly TextBox _middleXField, _middleYField, _scaleField, _limitField;
+        private MandelView _mandelView;
+        private readonly TextBox _middleXField, _middleYField, _scaleField, _limitField, _widthField, _heightField;
 
         private bool _isMouseDown;
         private RadioButtonList? _prefabList;
@@ -33,17 +34,21 @@ namespace InfoImp_Mandelbrot {
         
         public MainForm() {
             this.Title = "INFOIMPL Mandelbrot";
-            base.Size = new Size(MandelWidth + 40, MandelHeight + 40 + 320);
-            KeyValuePair<TableRow, TextBox> middleXField = BuildLabelledInputRow("Midden X");
-            KeyValuePair<TableRow, TextBox> middleYField = BuildLabelledInputRow("Midden Y");
-            KeyValuePair<TableRow, TextBox> scaleField = BuildLabelledInputRow("Schaal");
-            KeyValuePair<TableRow, TextBox> maxCountField = BuildLabelledInputRow("Max Aantal");
-            
+            base.Size = new Size(800, 800);
+            KeyValuePair<TableCell[], TextBox> middleXField = BuildLabelledInputRow("Midden X");
+            KeyValuePair<TableCell[], TextBox> middleYField = BuildLabelledInputRow("Midden Y");
+            KeyValuePair<TableCell[], TextBox> scaleField = BuildLabelledInputRow("Schaal");
+            KeyValuePair<TableCell[], TextBox> maxCountField = BuildLabelledInputRow("Max Aantal");
+            KeyValuePair<TableCell[], TextBox> widthField = BuildLabelledInputRow("Breedte");
+            KeyValuePair<TableCell[], TextBox> heightField = BuildLabelledInputRow("Hoogte");
+
             // Configure default values
             middleXField.Value.Text = "0";
             middleYField.Value.Text = "0";
             scaleField.Value.Text = "1";
             maxCountField.Value.Text = "100";
+            widthField.Value.Text = "400";
+            heightField.Value.Text = "400";
 
             this._middleXField = middleXField.Value;
             this._middleYField = middleYField.Value;
@@ -54,17 +59,38 @@ namespace InfoImp_Mandelbrot {
             this._mandelView = new MandelView() { Size = new Size(MandelWidth, MandelHeight) };
             this._mandelView.MouseDown += this.OnMandelViewMouseDown;
             this._mandelView.MouseUp += this.OnMandelViewMouseUp;
-            
-            this.Content = new StackLayout {
+
+            this.Content = new StackLayout() {
+                HorizontalContentAlignment = HorizontalAlignment.Center,
                 Items = {
                     // Parameter inputs
                     new TableLayout {
-                        Spacing = new Size(0, 10),
+                        Spacing = new Size(10, 10),
                         Rows = {
-                            middleXField.Key,
-                            middleYField.Key,
-                            scaleField.Key,
-                            maxCountField.Key,
+                            new TableRow() {
+                                Cells = {
+                                    middleXField.Key[0],
+                                    middleXField.Key[1],
+                                    middleYField.Key[0],
+                                    middleYField.Key[1],
+                                },
+                            },
+                            new TableRow() {
+                                Cells = {
+                                    scaleField.Key[0],
+                                    scaleField.Key[1],
+                                    maxCountField.Key[0],
+                                    maxCountField.Key[1],
+                                }
+                            },
+                            new TableRow() {
+                                Cells = {
+                                    widthField.Key[0],
+                                    widthField.Key[1],
+                                    heightField.Key[0],
+                                    heightField.Key[1],
+                                }
+                            }
                         }
                     },
                     new TableLayout() {
@@ -73,12 +99,13 @@ namespace InfoImp_Mandelbrot {
                             new TableRow() {
                                 Cells = {
                                     this.GetPrefabSelectorLayout(),
-                                    this.GetColorSelector()      
+                                    this.GetColorSelector(),
+                                    this.GetBackendSelectorLayout(),
+
                                 }
-                            }
+                            },
                         }
                     },
-                    this.GetBackendSelectorLayout(),
                     this.GetGoButton(),
                     // mandelbrot viewer
                     this._mandelView
@@ -89,6 +116,89 @@ namespace InfoImp_Mandelbrot {
             this.Padding = new Padding(20);
         }
 
+            /// <summary>
+    /// Get the backend selector layout.
+    /// The options available in the selector depends on the OS and architecutre
+    /// </summary>
+    /// <returns>
+    /// The backend selector layout
+    /// </returns>
+    private StackLayout GetBackendSelectorLayout() {
+        ListItemCollection availableOptions = new ListItemCollection() {
+            "C#"
+        };
+
+        bool osSupported;
+        switch (Environment.OSVersion.Platform) {
+            case PlatformID.Win32Windows:
+            case PlatformID.Unix:
+                osSupported = true;
+                break;
+            default:
+                Console.WriteLine($"Native backend not supported on {Environment.OSVersion.Platform}");
+                osSupported = false;
+                break;
+        }
+
+        bool archSupported;
+        switch (RuntimeInformation.OSArchitecture) {
+            case Architecture.X64:
+                archSupported = true;
+                break;
+            default:
+                Console.WriteLine($"Native backend not supported on architecture {RuntimeInformation.OSArchitecture}");
+                archSupported = false;
+                break;
+        }
+
+        if (osSupported && archSupported) {
+            availableOptions.Add("Rust");
+            availableOptions.Add("GPU");
+        }
+
+        this._backendList = new RadioButtonList() {
+            ToolTip = "Select the backend to use for calculations. Which options are availasble depends on the platform, If you are using the GPU option, it is your responsibility to ensure libOpenCL is available!"
+        };
+
+        foreach (IListItem item in availableOptions) {
+            this._backendList.Items.Add(item);
+        }
+
+        this._backendList.SelectedKey = "C#";
+        this._backendList.SelectedIndexChanged += this.OnBackendSelectorChanged;
+
+        return new StackLayout() {
+            Items = {
+                "Backend",
+                this._backendList,
+            },
+            Padding = new Padding() {
+                Bottom = 10,
+                Top = 10,
+            }
+        };
+    }
+    
+    private void OnBackendSelectorChanged(object? sender, EventArgs args) {
+        Platform p;
+        switch (this._backendList!.SelectedKey) {
+            case "C#":
+                p = InfoImp_Mandelbrot.Platform.CSharp;
+                break;
+            case "Rust":
+                p = InfoImp_Mandelbrot.Platform.Rust;
+                break;
+            case "GPU":
+                p = InfoImp_Mandelbrot.Platform.RustOcl;
+                break;
+            default:
+                throw new InvalidDataException($"Unknown platform key {this._backendList.SelectedKey}");
+        }
+
+        this._mandelView.BackendPlatform = p;
+        this._mandelView.Invalidate();
+    }
+        
         /// <summary>
         /// Get the color palette selector layout
         /// </summary>
@@ -119,68 +229,6 @@ namespace InfoImp_Mandelbrot {
             };
         }
 
-        /// <summary>
-        /// Get the backend selector layout.
-        /// The options available in the selector depends on the OS and architecutre
-        /// </summary>
-        /// <returns>
-        /// The backend selector layout
-        /// </returns>
-        private StackLayout GetBackendSelectorLayout() {
-            ListItemCollection availableOptions = new ListItemCollection() {
-                "C#"
-            };
-
-            bool osSupported;
-            switch (Environment.OSVersion.Platform) {
-                case PlatformID.Win32Windows:
-                case PlatformID.Unix:
-                    osSupported = true;
-                    break;
-                default:
-                    Console.WriteLine($"Native backend not supported on {Environment.OSVersion.Platform}");
-                    osSupported = false;
-                    break;
-            }
-
-            bool archSupported;
-            switch (RuntimeInformation.OSArchitecture) {
-                case Architecture.X64:
-                    archSupported = true;
-                    break;
-                default:
-                    Console.WriteLine($"Native backend not supported on architecture {RuntimeInformation.OSArchitecture}");
-                    archSupported = false;
-                    break;
-            }
-
-            if (osSupported && archSupported) {
-                availableOptions.Add("Rust");
-            }
-
-            this._backendList = new RadioButtonList() {
-                ToolTip = "Select the backend to use for calculations. Which options are availasble depends on the platform"
-            };
-
-            foreach (IListItem item in availableOptions) {
-                this._backendList.Items.Add(item);   
-            }
-
-            this._backendList.SelectedKey = "C#";
-            this._backendList.SelectedIndexChanged += this.OnBackendSelectorChanged;
-            
-            return new StackLayout() {
-                Items = {
-                    "Backend",
-                    this._backendList,
-                },
-                Padding = new Padding() {
-                    Bottom = 10,
-                    Top = 10,
-                }
-            };
-        }
-        
         /// <summary>
         /// Get the prefab selector layout
         /// </summary>
@@ -253,23 +301,6 @@ namespace InfoImp_Mandelbrot {
             this._mandelView.Invalidate();
         }
 
-        private void OnBackendSelectorChanged(object? sender, EventArgs args) {
-            Platform p;
-            switch (this._backendList!.SelectedKey) {
-                case "C#":
-                    p = InfoImp_Mandelbrot.Platform.CSharp;
-                    break;
-                case "Rust":
-                    p = InfoImp_Mandelbrot.Platform.Rust;
-                    break;
-                default:
-                    throw new InvalidDataException($"Unknown platform key {this._backendList.SelectedKey}");
-            }
-
-            this._mandelView.BackendPlatform = p;
-            this._mandelView.Invalidate();
-        }
-        
         /// <summary>
         /// Called when the prefab list changed
         /// </summary>
@@ -430,23 +461,21 @@ namespace InfoImp_Mandelbrot {
         /// <returns>
         /// A table row consisting of a label on the left and a TextBox on the right
         /// </returns>
-        private static KeyValuePair<TableRow, TextBox> BuildLabelledInputRow(string label) {
+        private static KeyValuePair<TableCell[], TextBox> BuildLabelledInputRow(string label) {
             TextBox box = new TextBox();
-            TableRow row = new TableRow {
-                Cells = {
-                    new TableCell {
-                        Control = new Label {
-                            Width = 200,
-                            Text = label
-                        }
-                    },
-                    new TableCell {
-                        Control = box
+            TableCell[] cells = new TableCell[] {
+                new TableCell {
+                    Control = new Label {
+                        Width = 200,
+                        Text = label
                     }
+                },
+                new TableCell {
+                    Control = box
                 }
             };
 
-            return new KeyValuePair<TableRow, TextBox>(row, box);
+            return new KeyValuePair<TableCell[], TextBox>(cells, box);
         }
     }
 }
