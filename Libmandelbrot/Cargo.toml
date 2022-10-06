@@ -8,6 +8,12 @@ authors = ["Tobias de Bruijn <t.debruijn@array21.dev>"]
 crate-type = ["cdylib"]
 
 [dependencies]
-rayon = "1.5.3"
-ocl = "0.19.4"
 lazy_static = "1.4.0"
+
+[dependencies.rayon]
+version = "1.5.3"
+optional = true
+
+[dependencies.ocl]
+version = "0.19.4"
+optional = true

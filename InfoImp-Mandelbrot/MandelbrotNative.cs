@@ -7,7 +7,7 @@ public static class MandelbrotNative {
 
 
     [SuppressUnmanagedCodeSecurity]
-    [DllImport("libmandelbrot", EntryPoint = "calculate_mandelbrot_set", CallingConvention = CallingConvention.Winapi)]
+    [DllImport("mandelbrot_rayon", EntryPoint = "calculate_mandelbrot_set", CallingConvention = CallingConvention.Winapi)]
     private static extern void FFI_CalculateMandelbrotSet(
         int xMin, 
         int xMax, 
@@ -19,7 +19,7 @@ public static class MandelbrotNative {
         int[] result);
 
     [SuppressUnmanagedCodeSecurity]
-    [DllImport("libmandelbrot", EntryPoint = "ocl_calculate_mandelbrot_set", CallingConvention = CallingConvention.Winapi)]
+    [DllImport("mandelbrot_ocl", EntryPoint = "ocl_calculate_mandelbrot_set", CallingConvention = CallingConvention.Winapi)]
     private static extern void FFI_OCL_CalculateMandelbrotSet(
         int xMin,
         int xMax,

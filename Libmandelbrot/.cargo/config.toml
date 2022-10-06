@@ -1,0 +1,4 @@
+[target.x86_64-pc-windows-gnu.cl-sys]
+rustc-link-search = [
+    "./"
+]

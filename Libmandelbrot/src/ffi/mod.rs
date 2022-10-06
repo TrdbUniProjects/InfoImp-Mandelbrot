@@ -1,4 +1,10 @@
+// When using neither the rayon nor the ocl feature,
+// rustc will complain of unused functions
+#![cfg_attr(not(any(feature = "rayon", feature = "ocl")), allow(unused))]
+
+#[cfg(feature = "rayon")]
 mod rayon;
+#[cfg(feature = "ocl")]
 mod ocl;
 
 fn get_color(iteration: i32, a: f64, b: f64, color_palette: i32) -> i32 {
