@@ -1,18 +1,18 @@
-using System.Text;
 using Eto.Drawing;
 using Eto.Forms;
+using InfoImp_Mandelbrot.Inputs.RadioSelectors;
 
-namespace InfoImp_Mandelbrot; 
+namespace InfoImp_Mandelbrot.Mandelbrot; 
 
 public class MandelView : Drawable {
 
     public Platform BackendPlatform { get; set; } = InfoImp_Mandelbrot.Platform.CSharp;
-    public int ColorPalette { get; set; } = Mandelbrot.ColorPaletteDefault;
+    public int ColorPalette { get; set; } = ColorPaletteSelector.ColorPaletteDefault;
     public bool Ready { get; set; }
-    public double CX { get; set; }
-    public double CY { get; set; }
-    public int Width { get; set; }
-    public int Height { get; set; }
+    public double Cx { get; set; }
+    public double Cy { get; set; }
+    public int MandelWidth { get; set; }
+    public int MandelHeight { get; set; }
     public int Limit { get; set; }
     
     public double Scale { get; set; }
@@ -29,21 +29,21 @@ public class MandelView : Drawable {
         int[] mandelbrotSet;
         switch (this.BackendPlatform) { 
             case InfoImp_Mandelbrot.Platform.CSharp:
-                mandelbrotSet = Mandelbrot.CalculateMandelbrotSet(this.CX * 100, this.CY * 100, this.Width, this.Height, this.Limit, this.Scale, this.ColorPalette);
+                mandelbrotSet = Mandelbrot.CalculateMandelbrotSet(this.Cx, this.Cy, this.MandelWidth, this.MandelHeight, this.Limit, this.Scale, this.ColorPalette);
                 break; 
             case InfoImp_Mandelbrot.Platform.RustOcl:
             case InfoImp_Mandelbrot.Platform.Rust:
-                mandelbrotSet = MandelbrotNative.CalculatemandelbrotSet(this.BackendPlatform == InfoImp_Mandelbrot.Platform.RustOcl, this.CX, this.CY, this.Width, this.Height, this.Limit, this.Scale, this.ColorPalette);
+                mandelbrotSet = MandelbrotNative.CalculatemandelbrotSet(this.BackendPlatform == InfoImp_Mandelbrot.Platform.RustOcl, this.Cx, this.Cy, this.MandelWidth, this.MandelHeight, this.Limit, this.Scale, this.ColorPalette);
                 break;
             default:
                 throw new InvalidDataException($"Platform {this.BackendPlatform} is not implemented");
         }
         
-        Bitmap bitmap = new Bitmap(this.Width, this.Height, PixelFormat.Format24bppRgb);
+        Bitmap bitmap = new Bitmap(this.MandelWidth, this.MandelHeight, PixelFormat.Format24bppRgb);
         BitmapData innerData = bitmap.Lock();
-        for (int x = 0; x < this.Width; x++) {
-            for (int y = 0; y < this.Height; y++) {
-                Color c = Color.FromArgb(mandelbrotSet[this.Width * x + y]);
+        for (int x = 0; x < this.MandelWidth; x++) {
+            for (int y = 0; y < this.MandelHeight; y++) {
+                Color c = Color.FromArgb(mandelbrotSet[this.MandelWidth * x + y]);
                 innerData.SetPixel(x, y, c);
             }
         }

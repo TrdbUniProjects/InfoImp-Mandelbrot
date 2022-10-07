@@ -79,7 +79,7 @@ fn get_color_with_palette<const N: usize>(iteration: i32, a: f64, b: f64, palett
     if smoothed.is_nan() {
         return compact_rgb(0, 0, 0);
     }
-
+    
     let idx = ((iteration as f64 + 10f64 - smoothed).sqrt() * 256_f64).floor() as i32 % N as i32;
     let (r, g, b) = palette[idx as usize];
     compact_rgb(r, g, b)

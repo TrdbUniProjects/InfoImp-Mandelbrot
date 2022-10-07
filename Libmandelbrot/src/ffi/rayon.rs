@@ -29,8 +29,11 @@ pub extern "C" fn calculate_mandelbrot_set(
     (0..width).into_par_iter()
         .for_each(|px| (0..height).into_iter()
             .for_each(|py| {
-                let x: f64 = (px as f64 + (cx / (100.0 * scale)) - 200.0) * scale;
-                let y: f64 = (py as f64 + (cy / (100.0 * scale)) - 200.0) * scale;
+                let npx = px as f64 * 4.0 / width as f64;
+                let npy = py as f64 * 4.0 / height as f64;
+
+                let x = (npx + cx - 2.0) * scale;
+                let y = (npy + cy - 2.0) * scale;
 
                 let mut a = 0f64;
                 let mut b = 0f64;
@@ -42,7 +45,7 @@ pub extern "C" fn calculate_mandelbrot_set(
                     a = tmp_a;
                     iteration += 1;
 
-                    if distance(a, b, 0f64, 0f64) > 2.0 {
+                    if distance_squared(a, b, 0f64, 0f64) > 4.0 {
                         break;
                     }
 
@@ -62,6 +65,6 @@ pub extern "C" fn calculate_mandelbrot_set(
         )
 }
 
-fn distance(xa: f64, ya: f64, xb: f64, yb: f64) -> f64 {
-    ((xa * xa + ya * ya) - (xb * xb + yb * yb)).sqrt()
+fn distance_squared(xa: f64, ya: f64, xb: f64, yb: f64) -> f64 {
+    (xa * xa + ya * ya) - (xb * xb + yb * yb)
 }

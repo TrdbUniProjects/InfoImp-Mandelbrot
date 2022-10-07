@@ -1,7 +1,7 @@
 using System.Runtime.InteropServices;
 using System.Security;
 
-namespace InfoImp_Mandelbrot; 
+namespace InfoImp_Mandelbrot.Mandelbrot; 
 
 public static class MandelbrotNative {
 

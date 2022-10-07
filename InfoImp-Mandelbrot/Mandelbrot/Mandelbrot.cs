@@ -1,12 +1,10 @@
 using Eto.Drawing;
+using InfoImp_Mandelbrot.Inputs.RadioSelectors;
 
-namespace InfoImp_Mandelbrot; 
+namespace InfoImp_Mandelbrot.Mandelbrot; 
 
 public static class Mandelbrot {
 
-    public const int ColorPaletteDefault = 0;
-    public const int ColorPaletteRedscale = 1;
-    
     /// <summary>
     /// Precomputed default color shades
     /// </summary>
@@ -60,22 +58,22 @@ public static class Mandelbrot {
         Color.FromArgb(250, 0, 0),
     };
     
-    private static double Distance(double xa, double ya, double xb, double yb) {
-        return Math.Sqrt((xa * xa + ya * ya) - (xb * xb + yb * yb));
+    private static double DistanceSquared(double xa, double ya, double xb, double yb) {
+        return (xa * xa + ya * ya) - (xb * xb + yb * yb);
     }
 
     /// <summary>
     /// Calculate the mandelbrot set for the provided paraemeters
     /// </summary>
-    /// <param name="xMin">The top left X coordinate from where to start calculating</param>
-    /// <param name="xMax">The bottom right X coordinate to calculate to</param>
-    /// <param name="yMin">The top left Y coordinate from where to start calculating</param>
-    /// <param name="yMax">The bottom right Y coordinate to calculate to</param>
+    /// <param name="cy">The center X coordinate</param>
+    /// <param name="cx">The center Y coordinate</param>
+    /// <param name="width">The width of the viewport</param>
+    /// <param name="height">The height of the viewport</param>
     /// <param name="limit">The iteration limit in the mandelbrot formula</param>
     /// <param name="scale">The scale of the image (resolution)</param>
     /// <param name="colorPalette"> The color palette to use</param>
     /// <returns>
-    /// The ARGB color value for every pixel in a 2D array
+    /// The ARGB color value for every pixel in an array stored in column order
     /// </returns>
     public static int[] CalculateMandelbrotSet(double cx, double cy, int width, int height, int limit, double scale, int colorPalette) {
 
@@ -83,11 +81,11 @@ public static class Mandelbrot {
 
         for (int px = 0; px < width; px++) {
             for (int py = 0; py < height; py++) {
-                //double x = xMin * scale + scale * px;
-                //double y = yMin * scale + scale * py;
-                double x = (px + (cx / (100 * scale)) - 200) * scale;
-                double y = (py + (cy / (100 * scale)) - 200) * scale;
+                double npx = px * 4f / width;
+                double npy = py * 4f / height;
                 
+                double x = (npx + cx - 2f) * scale;
+                double y = (npy + cy - 2f) * scale;
                 
                 double a = 0;
                 double b = 0;
@@ -98,7 +96,7 @@ public static class Mandelbrot {
                     b = 2 * a * b + y;
                     a = tmpA;
                     iteration++;
-                } while (Distance(a, b, 0, 0) < 2 && iteration < limit);
+                } while (DistanceSquared(a, b, 0, 0) < 4 && iteration < limit);
 
                 result[width * px + py] = GetPixelColor(iteration, a, b, colorPalette).ToArgb();
             }
@@ -118,9 +116,9 @@ public static class Mandelbrot {
 
     private static Color GetPixelColor(int iteration, double a, double b, int colorPalette) {
         switch (colorPalette) {
-            case ColorPaletteDefault:
+            case ColorPaletteSelector.ColorPaletteDefault:
                 return GetPixelColorWithColorSet(iteration, a, b, DefaultColors);
-            case ColorPaletteRedscale:
+            case ColorPaletteSelector.ColorPaletteRedscale:
                 return GetPixelColorWithColorSet(iteration, a, b, RedColors);
             default:
                 throw new InvalidDataException($"Invalid color palette {colorPalette}");
