@@ -21,3 +21,8 @@ Building this full project requires the following dependencies:
 - OpenCL
 - GNU make
 >Note: On Windows this can be installed via [Chocolatey](https://chocolatey.org/install#individual): `choco install make`
+
+Then you can run `make build-linux` or `make build-windows` in the repository root.
+
+## Running
+After building, run `dotnet run --project InfoImp-Mandelbrot.Gtk` (Linux) or `dotnet run --project InfoImp-Mandelbrot.Wpf` (Windows).
