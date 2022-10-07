@@ -1,3 +1,5 @@
+all: 
+
 SRC = $(shell find -type f -name \*.rs -or -name \*.cl -or -name Cargo.toml)
 
 .PHONY: build-windows build-linux
