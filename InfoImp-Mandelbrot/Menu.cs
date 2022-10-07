@@ -38,7 +38,7 @@ public class Menu {
                        "When chosing a limit and size it is important to keep in mind the backend used. If a high resolution or high limit is chosen, the C# backend must not be chosen.\n" +
                        "It becomes too slow to be usable. The Rust or GPU backends are then preferred. When wanting to render in very high detail, but care a little less about speed, use the Rust backend.\n" +
                        "If your platform supports the fp64 extension for OCL, you can also render in very high detail on the GPU. If it does not, it can only use f32 precision.\n" +
-                       "Lastly, while the GPU is very fast, copying the data to it and running the code is not. E.g. a size 1000 image at limit 1000000 takes 37ms with the Rust backend, and 32ms with the GPU backend.\n" +
+                       "Lastly, while the GPU is very fast, copying the data to it and running the code is not. E.g. a size 1000 image at limit 1000000 takes 37ms with the Rust backend, and 32ms with the GPU backend. (Ryzen 5900X + NVidia RTX 2080Ti) \n " +
                        "On the contrary, a size 8000 image with scale 1000000 takes 2.4 seconds in the Rust backend, but only 1.2 seconds in the GPU backend. The C# backend takes at least 2 minutes (patience ran out :) ).\n" +
                        "When running at lower settings, it usually is better to use the C# backend though. This is due to the overhead in calling C functions (The Rust backend uses the C ABI) and in running code on the GPU.\n" +
                        "\n" +
