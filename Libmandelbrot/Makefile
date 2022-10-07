@@ -18,7 +18,7 @@ libopencl-linux:
 
 target/x86_64-pc-windows-msvc/release/mandelbrot_ocl.dll: $(SRC)
 	cargo build --release --target x86_64-pc-windows-msvc --features ocl
-	copy target/x86_64-pc-windows-msvc/release/mandelbrot.dll target/x86_64-pc-windows-msvc/release/mandelbrot_ocl.dll
+	copy target\x86_64-pc-windows-msvc\release\mandelbrot.dll target\x86_64-pc-windows-msvc\release\mandelbrot_ocl.dll
 
 target/x86_64-unknown-linux-gnu/release/libmandelbrot_ocl.so: $(SRC) libopencl-linux
 	cargo build --release --target x86_64-unknown-linux-gnu --features ocl
@@ -26,7 +26,7 @@ target/x86_64-unknown-linux-gnu/release/libmandelbrot_ocl.so: $(SRC) libopencl-l
 
 target/x86_64-pc-windows-msvc/release/mandelbrot_rayon.dll: $(SRC)
 	cargo build --release --target x86_64-pc-windows-msvc --features rayon
-	copy target/x86_64-pc-windows-msvc/release/mandelbrot.dll target/x86_64-pc-windows-msvc/release/mandelbrot_rayon.dll
+	copy target\x86_64-pc-windows-msvc\release\mandelbrot.dll target\x86_64-pc-windows-msvc\release\mandelbrot_rayon.dll
 
 target/x86_64-unknown-linux-gnu/release/libmandelbrot_rayon.so: $(SRC)
 	cargo build --release --target x86_64-unknown-linux-gnu --features rayon
