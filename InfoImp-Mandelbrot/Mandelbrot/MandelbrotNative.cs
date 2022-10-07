@@ -8,7 +8,7 @@ public static class MandelbrotNative {
 
     [SuppressUnmanagedCodeSecurity]
     [DllImport("mandelbrot_rayon", EntryPoint = "calculate_mandelbrot_set", CallingConvention = CallingConvention.Winapi)]
-    private static extern void FFI_CalculateMandelbrotSet(
+    private static extern long FFI_CalculateMandelbrotSet(
         double cx, 
         double cy, 
         int width, 
@@ -20,7 +20,7 @@ public static class MandelbrotNative {
 
     [SuppressUnmanagedCodeSecurity]
     [DllImport("mandelbrot_ocl", EntryPoint = "ocl_calculate_mandelbrot_set", CallingConvention = CallingConvention.Winapi)]
-    private static extern void FFI_OCL_CalculateMandelbrotSet(
+    private static extern long FFI_OCL_CalculateMandelbrotSet(
         double cx,
         double cy,
         int width,
@@ -30,7 +30,19 @@ public static class MandelbrotNative {
         int colorPalette,
         int[] result);
     
-    public static int[] CalculatemandelbrotSet(
+    /// <summary>
+    /// Calculate the mandelbrot set
+    /// </summary>
+    /// <param name="useOcl">Whether to use OpenCL</param>
+    /// <param name="cx">Center X</param>
+    /// <param name="cy">Center Y</param>
+    /// <param name="width">Image width</param>
+    /// <param name="height">Image height</param>
+    /// <param name="limit">Iteration limit</param>
+    /// <param name="scale">The scale to use</param>
+    /// <param name="colorPalette">The color palette to use</param>
+    /// <returns>A tuple with the result and the time it took to calculate in miliseconds</returns>
+    public static (int[], long) CalculatemandelbrotSet(
         bool useOcl,
         double cx,
         double cy,
@@ -41,9 +53,10 @@ public static class MandelbrotNative {
         int colorPalette
     ) {
         int[] result = new int[width * height];
-        
+
+        long calcTimeMs;
         if(useOcl) {
-            FFI_OCL_CalculateMandelbrotSet(
+            calcTimeMs = FFI_OCL_CalculateMandelbrotSet(
                 cx,
                 cy,
                 width,
@@ -53,7 +66,7 @@ public static class MandelbrotNative {
                 colorPalette,
                 result);
         } else {
-            FFI_CalculateMandelbrotSet(
+            calcTimeMs = FFI_CalculateMandelbrotSet(
                 cx,
                 cy,
                 width,
@@ -64,6 +77,6 @@ public static class MandelbrotNative {
                 result);   
         }
 
-        return result;
+        return (result, calcTimeMs);
     }
 }

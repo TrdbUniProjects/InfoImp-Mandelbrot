@@ -1,3 +1,6 @@
+using System.Globalization;
+using Eto.Drawing;
+
 namespace InfoImp_Mandelbrot.EventHandlers; 
 
 public class GoButtonHandler : IEventHandler {
@@ -15,16 +18,14 @@ public class GoButtonHandler : IEventHandler {
     /// <param name="sender">The object which triggered this event</param>
     /// <param name="args">Arguments to the event</param>
     public void OnEvent(object? sender, EventArgs args) {
-        this._main.MandelView.Scale = double.Parse(this._main.ScaleField.GetInputControl().Text);
-        this._main.MandelView.Limit = int.Parse(this._main.LimitField.GetInputControl().Text);
-                
-        int centerX = int.Parse(this._main.CenterXField.GetInputControl().Text);
-        int centerY = int.Parse(this._main.CenterYField.GetInputControl().Text);
-        this._main.MandelView.MandelWidth = int.Parse(this._main.WidthField.GetInputControl().Text);
-        this._main.MandelView.MandelHeight = int.Parse(this._main.HeightField.GetInputControl().Text);
-
-        this._main.MandelView.Cx = centerX;
-        this._main.MandelView.Cy = centerY;
+        this._main.MandelView.Scale = double.Parse(this._main.ScaleField.GetInputControl().Text, CultureInfo.InvariantCulture);
+        this._main.MandelView.Limit = int.Parse(this._main.LimitField.GetInputControl().Text, CultureInfo.InvariantCulture);
+        this._main.MandelView.Cx = double.Parse(this._main.CenterXField.GetInputControl().Text, CultureInfo.InvariantCulture);
+        this._main.MandelView.Cy = double.Parse(this._main.CenterYField.GetInputControl().Text, CultureInfo.InvariantCulture);
+        
+        int size = int.Parse(this._main.SizeField.GetInputControl().Text, CultureInfo.InvariantCulture);
+        this._main.MandelView.MandelWidth = size;
+        this._main.MandelView.MandelHeight = size;
         
         this._main.MandelView.Ready = true;
         this._main.MandelView.Invalidate();

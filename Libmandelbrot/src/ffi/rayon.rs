@@ -1,3 +1,4 @@
+use std::time::Instant;
 use rayon::prelude::*;
 use crate::ffi::get_color;
 
@@ -23,48 +24,52 @@ pub extern "C" fn calculate_mandelbrot_set(
     scale: f64,
     color_palette: i32,
     result: *mut i32,
-){
+) -> i64 {
     let raw_ptr = SyncSendRawPtr(result);
 
+    let now = Instant::now();
+    let zoom_scalar = 1.0 / scale;
     (0..width).into_par_iter()
-        .for_each(|px| (0..height).into_iter()
-            .for_each(|py| {
-                let npx = px as f64 * 4.0 / width as f64;
-                let npy = py as f64 * 4.0 / height as f64;
+        .for_each(|px| {
+            let image_space_x = px as f64 / width as f64 * 4.0 - 2.0;
+            let x = cx + image_space_x * zoom_scalar;
 
-                let x = (npx + cx - 2.0) * scale;
-                let y = (npy + cy - 2.0) * scale;
+            (0..height).into_iter()
+                .for_each(|py| {
+                    let image_space_y = py as f64 / height as f64 * 4.0 - 2.0;
+                    let y = cy + image_space_y * zoom_scalar;
 
-                let mut a = 0f64;
-                let mut b = 0f64;
+                    let mut a = 0f64;
+                    let mut b = 0f64;
 
-                let mut iteration = 0;
-                loop {
-                    let tmp_a = a * a - b * b + x;
-                    b = 2f64 * a * b + y;
-                    a = tmp_a;
-                    iteration += 1;
+                    let mut iteration = 0;
+                    loop {
+                        let a_squared = a * a;
+                        let b_squared = b * b;
 
-                    if distance_squared(a, b, 0f64, 0f64) > 4.0 {
-                        break;
+                        let tmp_a = a_squared - b_squared + x;
+                        b = 2f64 * a * b + y;
+                        a = tmp_a;
+                        iteration += 1;
+
+                        if a_squared + b_squared > 4.0 {
+                            break;
+                        }
+
+                        if iteration >= limit {
+                            break;
+                        }
                     }
 
-                    if iteration >= limit {
-                        break;
+                    unsafe {
+                        // We cant use the *mut i32 directly, because it may
+                        // not be moved accross thread by default
+                        // however it is perfectly fine here.
+                        // SAFETY: The pointer at the specified offset is exclusive to us here.
+                        raw_ptr.set_value_at_offset(get_color(iteration, a, b, color_palette), (width * px + py) as isize);
                     }
-                }
+                })
+        });
 
-                unsafe {
-                    // We cant use the *mut i32 directly, because it may
-                    // not be moved accross thread by default
-                    // however it is perfectly fine here.
-                    // SAFETY: The pointer at the specified offset is exclusive to us here.
-                    raw_ptr.set_value_at_offset(get_color(iteration, a, b, color_palette), (width * px + py) as isize);
-                }
-            })
-        )
-}
-
-fn distance_squared(xa: f64, ya: f64, xb: f64, yb: f64) -> f64 {
-    (xa * xa + ya * ya) - (xb * xb + yb * yb)
+    now.elapsed().as_nanos() as i64
 }

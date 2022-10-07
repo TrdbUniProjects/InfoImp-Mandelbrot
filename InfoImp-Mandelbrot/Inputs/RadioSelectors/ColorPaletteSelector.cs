@@ -3,7 +3,7 @@ using Eto.Forms;
 
 namespace InfoImp_Mandelbrot.Inputs.RadioSelectors; 
 
-public class ColorPaletteSelector : RadioSelector {
+public class ColorPaletteSelector : AbstractRadioSelector {
 
     public ColorPaletteSelector(MainForm mainForm) : base(mainForm) {}
     
@@ -43,7 +43,7 @@ public class ColorPaletteSelector : RadioSelector {
         // colorList is not null at this point
         switch (this.Radios.SelectedKey) {
             case "Default":
-                this.MainForm.MandelView.ColorPalette = ColorPaletteRedscale;
+                this.MainForm.MandelView.ColorPalette = ColorPaletteDefault;
                 break;
             case "Redscale":
                 this.MainForm.MandelView.ColorPalette = ColorPaletteRedscale;

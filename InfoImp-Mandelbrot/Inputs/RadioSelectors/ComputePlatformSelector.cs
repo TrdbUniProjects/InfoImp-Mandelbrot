@@ -4,7 +4,7 @@ using Eto.Forms;
 
 namespace InfoImp_Mandelbrot.Inputs.RadioSelectors; 
 
-public class ComputePlatformSelector : RadioSelector {
+public class ComputePlatformSelector : AbstractRadioSelector {
     public ComputePlatformSelector(MainForm mainForm) : base(mainForm) {}
 
     public override RadioButtonList Radios { get; } = new RadioButtonList() {
@@ -23,34 +23,15 @@ public class ComputePlatformSelector : RadioSelector {
             "C#"
         };
 
-        bool osSupported;
-        switch (Environment.OSVersion.Platform) {
-            case PlatformID.Win32NT:
-            case PlatformID.Unix:
-                osSupported = true;
-                break;
-            default:
-                Console.WriteLine($"Native backend not supported on {Environment.OSVersion.Platform}");
-                osSupported = false;
-                break;
-        }
-
-        bool archSupported;
-        switch (RuntimeInformation.OSArchitecture) {
-            case Architecture.X64:
-                archSupported = true;
-                break;
-            default:
-                Console.WriteLine($"Native backend not supported on architecture {RuntimeInformation.OSArchitecture}");
-                archSupported = false;
-                break;
-        }
-
-        if (osSupported && archSupported) {
+        Platform[] supportedPlatforms = PlatformExtension.GetAvailablePlatforms();
+        if (supportedPlatforms.Contains(Platform.Rust)) {
             availableOptions.Add("Rust");
+        }
+
+        if (supportedPlatforms.Contains(Platform.RustOcl)) {
             availableOptions.Add("GPU");
         }
-        
+
         foreach (IListItem item in availableOptions) {
             this.Radios.Items.Add(item);
         }

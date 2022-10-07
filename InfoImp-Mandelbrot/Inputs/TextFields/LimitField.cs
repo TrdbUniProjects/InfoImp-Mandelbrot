@@ -2,13 +2,13 @@ using Eto.Forms;
 
 namespace InfoImp_Mandelbrot.Inputs.TextFields; 
 
-public class LimitField : InputField {
+public class LimitField : AbstractInputField {
     
     private TextBox TextBox { get; } = new TextBox() {
         Text = "100"
     };
-    
-    public override (string, TextBox) GetInputField() {
+
+    protected override (string, TextBox) GetInputField() {
         return ("Limiet", this.TextBox);
     }
 }

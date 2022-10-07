@@ -29,8 +29,12 @@ public class MouseDownHandler : IEventHandler {
     public void OnEvent(object? sender, EventArgs eargs) {
         MouseEventArgs args = (MouseEventArgs) eargs;
         
-        double normalMouseX = args.Location.X * 4 / this._main.MandelView.MandelWidth; 
-        double normalMouseY = args.Location.Y * 4 / this._main.MandelView.MandelHeight;
+        // We don't use the mandel's size here, as the user-visible image is only 400x400+
+        // Original transformation:
+        //double normalMouseX = args.Location.X * 4 / 400f;
+        // Optimised:
+        double normalMouseX = args.Location.X * 0.01f;
+        double normalMouseY = args.Location.Y * 0.01f;
 
         double centeredMouseX = normalMouseX - 2.0;
         double centeredMouseY = normalMouseY - 2.0;
@@ -75,10 +79,10 @@ public class MouseDownHandler : IEventHandler {
         // Right = zoom out
         switch (buttons) {
             case MouseButtons.Primary:
-                this._main.MandelView.Scale -= this._main.MandelView.Scale * ScaleStepFactor;
+                this._main.MandelView.Scale += this._main.MandelView.Scale * ScaleStepFactor;
                 break;
             case MouseButtons.Alternate:
-                this._main.MandelView.Scale += this._main.MandelView.Scale * ScaleStepFactor;
+                this._main.MandelView.Scale -= this._main.MandelView.Scale * ScaleStepFactor;
                 break;
         }
             

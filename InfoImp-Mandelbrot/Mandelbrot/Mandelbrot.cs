@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Eto.Drawing;
 using InfoImp_Mandelbrot.Inputs.RadioSelectors;
 
@@ -79,29 +80,51 @@ public static class Mandelbrot {
 
         int[] result = new int[width * height];
 
-        for (int px = 0; px < width; px++) {
-            for (int py = 0; py < height; py++) {
-                double npx = px * 4f / width;
-                double npy = py * 4f / height;
-                
-                double x = (npx + cx - 2f) * scale;
-                double y = (npy + cy - 2f) * scale;
-                
+        double zoomScalar = 1f / scale;
+
+        Parallel.For(0, height, (int pixelSpaceX) => {
+            // Translate X from pixel space to image space
+            // We dont need to optimise the 2f - -2f etc, the compiler does this for us
+            double imageSpaceX = (double)pixelSpaceX / width * (2f - -2f) + -2f;
+            // Apply the center X and zoom scalar
+            double x = cx + imageSpaceX * zoomScalar;
+            
+            for (int pixelSpaceY = 0; pixelSpaceY < height; pixelSpaceY++) {
+                // Translate Y from pixel space to image space
+                double imageSpaceY = (double)pixelSpaceY / height * (2f - -2f) + -2f;
+                // Apply the center y and zoom scalar
+                double y = cy + imageSpaceY * zoomScalar;
+
                 double a = 0;
                 double b = 0;
 
+                double aSquared;
+                double bSquared;
+
                 int iteration = 0;
                 do {
-                    double tmpA = a * a - b * b + x;
+                    // Square these seperately to
+                    // avoid multiplying them more than needed
+                    aSquared = a * a;
+                    bSquared = b * b;
+
+                    double tmpA = aSquared - bSquared + x;
                     b = 2 * a * b + y;
                     a = tmpA;
                     iteration++;
-                } while (DistanceSquared(a, b, 0, 0) < 4 && iteration < limit);
 
-                result[width * px + py] = GetPixelColor(iteration, a, b, colorPalette).ToArgb();
+                    // Pythagoras tells us that the distance between A and B is equal to
+                    // distance = sqrt(xa^2 + ya^2 - (xb^2 + yb^2))
+                    // However, since we know the distance (2), we can square that (4) and elide the sqrt
+                    // Furthermore, B is 0, 0^2 is still 0, 0 + 0 is zero, N - 0 = N.
+                    // Thus we can elide that half.
+                    // We've already multiplied a and b before, use that
+                } while (aSquared + bSquared < 4 && iteration < limit);
+
+                result[width * pixelSpaceX + pixelSpaceY] = GetPixelColor(iteration, a, b, colorPalette).ToArgb();
             }
-        }
-        
+        });
+
         return result;
     }
 

@@ -1,42 +1,66 @@
-uint getColorPaletteIdx(uint iteration, float a, float b, uint paletteSize) {
-    float smoothed = log2(log2(a * a + b * b) / 2.0);
+#if defined(cl_khr_fp64)  // Khronos extension available?
+
+#pragma OPENCL EXTENSION cl_khr_fp64 : enable
+#define DOUBLE_SUPPORT_AVAILABLE
+
+#elif defined(cl_amd_fp64)  // AMD extension available?
+
+#pragma OPENCL EXTENSION cl_amd_fp64 : enable
+#define DOUBLE_SUPPORT_AVAILABLE
+
+#endif
+
+#if defined(DOUBLE_SUPPORT_AVAILABLE)
+
+// double
+typedef double real_t;
+
+#else
+
+// float
+typedef float real_t;
+
+#endif // DOUBLE_SUPPORT_AVAILABLE
+
+
+uint getColorPaletteIdx(uint iteration, real_t a, real_t b, uint paletteSize) {
+    real_t smoothed = log2(log2(a * a + b * b) / 2.0);
     int idx = ((uint) (native_sqrt(iteration + 10 - smoothed) * 256.0)) % paletteSize;
     return idx;
 }
 
-float distanceSquared(float xa, float ya, float xb, yb) {
-    return (xa * xa + ya * ya) - (xb * xb + yb * yb);
-}
-
 __kernel void mandelbrot(
     __global uint* buffer,
-    float cx,
-    float cy,
+    real_t cx,
+    real_t cy,
     int width,
     int height,
     uint limit,
-    float scale,
+    real_t scalar,
     uint paletteSize
 ) {
     int px = get_global_id(0);
     int py = get_global_id(1);
 
-    float npx = px * 4.0 / width;
-    float npy = py * 4.0 / height;
+    real_t x = cx + ((real_t) px / width * 4.0 - 2.0) * scalar;
+    real_t y = cy + ((real_t) py / height * 4.0 - 2.0) * scalar;
 
-    float x = (npx + cx - 2.0) * scale;
-    float y = (npy + cy - 2.0) * scale;
+    real_t a = 0;
+    real_t b = 0;
 
-    float a = 0;
-    float b = 0;
+    real_t aSquared;
+    real_t bSquared;
 
     uint iteration = 0;
     do {
-        float tmpA = a * a - b * b + x;
+        aSquared = a * a;
+        bSquared = b * b;
+
+        real_t tmpA = aSquared - bSquared + x;
         b = 2 * a * b + y;
         a = tmpA;
         iteration++;
-    } while (distanceSquared(a, b, 0, 0) < 4 && iteration < limit);
+    } while (aSquared + bSquared < 4 && iteration < limit);
 
     buffer[width * px + py] = getColorPaletteIdx(iteration, a, b, paletteSize);
 }

@@ -1,9 +1,10 @@
+using System.Globalization;
 using Eto.Drawing;
 using Eto.Forms;
 
 namespace InfoImp_Mandelbrot.Inputs.RadioSelectors; 
 
-public class PrefabSelector : RadioSelector {
+public class PrefabSelector : AbstractRadioSelector {
     public PrefabSelector(MainForm mainForm) : base(mainForm) {}
 
     public override RadioButtonList Radios { get; } = new RadioButtonList() {
@@ -45,8 +46,9 @@ public class PrefabSelector : RadioSelector {
     /// <param name="args">Event arguments</param>
     /// <exception cref="InvalidDataException">If the active index key is not known </exception>
     private void OnPrefabListChanged(object? sender, EventArgs args) {
-        int cx, cy;
-        double scale;
+        double scale, cx, cy;
+        int limit = 100;
+        int size = 400;
             
         // At this point the prefab list is initialized
         switch (this.Radios.SelectedKey) {
@@ -56,9 +58,11 @@ public class PrefabSelector : RadioSelector {
                 scale = 1;
                 break;
             case "B":
-                cx = 100;
-                cy = 100;
-                scale = 1000;
+                cx = -0.7484491448197463;
+                cy = -0.04948979034320733;
+                scale = 2824.5855390489;
+                size = 1000;
+                limit = 1000;
                 break;
             case "C":
                 cx = 0;
@@ -69,13 +73,17 @@ public class PrefabSelector : RadioSelector {
                 throw new InvalidDataException($"Invalid prefab key {this.Radios.SelectedKey}");
         }
 
-        this.MainForm.CenterXField.GetInputControl().Text = cx.ToString();
-        this.MainForm.CenterYField.GetInputControl().Text = cy.ToString();
-        this.MainForm.ScaleField.GetInputControl().Text = scale.ToString(Thread.CurrentThread.CurrentCulture);
+        this.MainForm.CenterXField.GetInputControl().Text = cx.ToString(CultureInfo.InvariantCulture);
+        this.MainForm.CenterYField.GetInputControl().Text = cy.ToString(CultureInfo.InvariantCulture);
+        this.MainForm.ScaleField.GetInputControl().Text = scale.ToString(CultureInfo.InvariantCulture);
+        this.MainForm.LimitField.GetInputControl().Text = limit.ToString();
+        this.MainForm.SizeField.GetInputControl().Text = size.ToString();
 
         this.MainForm.MandelView.Cx = cx;
         this.MainForm.MandelView.Cy = cy;
         this.MainForm.MandelView.Scale = scale;
+        this.MainForm.MandelView.Limit = limit;
+        this.MainForm.MandelView.MandelWidth = this.MainForm.MandelView.MandelHeight = size;
         this.MainForm.MandelView.Invalidate();
     }
 }

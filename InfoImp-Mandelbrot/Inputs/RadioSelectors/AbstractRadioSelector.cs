@@ -2,11 +2,11 @@ using Eto.Forms;
 
 namespace InfoImp_Mandelbrot.Inputs.RadioSelectors; 
 
-public abstract class RadioSelector {
+public abstract class AbstractRadioSelector {
 
     protected readonly MainForm MainForm;
 
-    public RadioSelector(MainForm mainForm) {
+    protected AbstractRadioSelector(MainForm mainForm) {
         this.MainForm = mainForm;
     }
     
