@@ -77,17 +77,17 @@ public static class Mandelbrot {
     /// <returns>
     /// The ARGB color value for every pixel in a 2D array
     /// </returns>
-    public static int[] CalculateMandelbrotSet(int xMin, int xMax, int yMin, int yMax, int limit, double scale, int colorPalette) {
-        int width = xMax - xMin;
-        int height = yMax - yMin;
+    public static int[] CalculateMandelbrotSet(double cx, double cy, int width, int height, int limit, double scale, int colorPalette) {
 
         int[] result = new int[width * height];
-        double distanceLimit = scale * (width + height) / 2;
 
         for (int px = 0; px < width; px++) {
             for (int py = 0; py < height; py++) {
-                double x = xMin * scale + scale * px;
-                double y = yMin * scale + scale * py;
+                //double x = xMin * scale + scale * px;
+                //double y = yMin * scale + scale * py;
+                double x = (px + (cx / (100 * scale)) - 200) * scale;
+                double y = (py + (cy / (100 * scale)) - 200) * scale;
+                
                 
                 double a = 0;
                 double b = 0;
@@ -98,7 +98,7 @@ public static class Mandelbrot {
                     b = 2 * a * b + y;
                     a = tmpA;
                     iteration++;
-                } while (Distance(a, b, 0, 0) < distanceLimit && iteration < limit);
+                } while (Distance(a, b, 0, 0) < 2 && iteration < limit);
 
                 result[width * px + py] = GetPixelColor(iteration, a, b, colorPalette).ToArgb();
             }

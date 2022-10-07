@@ -15,26 +15,22 @@ impl<T> SyncSendRawPtr<T> {
 
 #[no_mangle]
 pub extern "C" fn calculate_mandelbrot_set(
-    xmin: i32,
-    xmax: i32,
-    ymin: i32,
-    ymax: i32,
+    cx: f64,
+    cy: f64,
+    width: i32,
+    height: i32,
     limit: i32,
     scale: f64,
     color_palette: i32,
     result: *mut i32,
 ){
-    let width = xmax - xmin;
-    let height = ymax - ymin;
-    let distance_limit = scale * ((width + height) as f64) / 2f64;
-
     let raw_ptr = SyncSendRawPtr(result);
 
     (0..width).into_par_iter()
         .for_each(|px| (0..height).into_iter()
             .for_each(|py| {
-                let x: f64 = (xmin as f64) * scale + scale * (px as f64);
-                let y: f64 = (ymin as f64) * scale + scale * (py as f64);
+                let x: f64 = (px as f64 + (cx / (100.0 * scale)) - 200.0) * scale;
+                let y: f64 = (py as f64 + (cy / (100.0 * scale)) - 200.0) * scale;
 
                 let mut a = 0f64;
                 let mut b = 0f64;
@@ -46,7 +42,7 @@ pub extern "C" fn calculate_mandelbrot_set(
                     a = tmp_a;
                     iteration += 1;
 
-                    if distance(a, b, 0f64, 0f64) > distance_limit {
+                    if distance(a, b, 0f64, 0f64) > 2.0 {
                         break;
                     }
 

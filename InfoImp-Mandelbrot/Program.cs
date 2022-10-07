@@ -1,18 +1,9 @@
-﻿using System.Collections.ObjectModel;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 using Eto.Drawing;
 using Eto.Forms;
 
 namespace InfoImp_Mandelbrot {
     public class MainForm : Form {
-        /// <summary>
-        /// The width of the mandelbrot viewer
-        /// </summary>
-        private const int MandelWidth = 400;
-        /// <summary>
-        /// The height of the mandelbrot viewer 
-        /// </summary>
-        private const int MandelHeight = 400;
         /// <summary>
         /// The scale step factor applied when zooming in or zooming out
         /// </summary>
@@ -24,7 +15,7 @@ namespace InfoImp_Mandelbrot {
         /// </summary>
         private const int MouseDownConstantZoomMinimumDurationMs = 1000;
         
-        private MandelView _mandelView;
+        private readonly MandelView _mandelView;
         private readonly TextBox _middleXField, _middleYField, _scaleField, _limitField, _widthField, _heightField;
 
         private bool _isMouseDown;
@@ -54,9 +45,11 @@ namespace InfoImp_Mandelbrot {
             this._middleYField = middleYField.Value;
             this._scaleField = scaleField.Value;
             this._limitField = maxCountField.Value;
+            this._widthField = widthField.Value;
+            this._heightField = heightField.Value;
 
             // Configure the mandelbrot viewer
-            this._mandelView = new MandelView() { Size = new Size(MandelWidth, MandelHeight) };
+            this._mandelView = new MandelView() { Size = new Size(int.Parse(this._widthField.Text), int.Parse(this._heightField.Text)) };
             this._mandelView.MouseDown += this.OnMandelViewMouseDown;
             this._mandelView.MouseUp += this.OnMandelViewMouseUp;
 
@@ -116,88 +109,88 @@ namespace InfoImp_Mandelbrot {
             this.Padding = new Padding(20);
         }
 
-            /// <summary>
-    /// Get the backend selector layout.
-    /// The options available in the selector depends on the OS and architecutre
-    /// </summary>
-    /// <returns>
-    /// The backend selector layout
-    /// </returns>
-    private StackLayout GetBackendSelectorLayout() {
-        ListItemCollection availableOptions = new ListItemCollection() {
-            "C#"
-        };
+        /// <summary>
+        /// Get the backend selector layout.
+        /// The options available in the selector depends on the OS and architecutre
+        /// </summary>
+        /// <returns>
+        /// The backend selector layout
+        /// </returns>
+        private StackLayout GetBackendSelectorLayout() {
+            ListItemCollection availableOptions = new ListItemCollection() {
+                "C#"
+            };
 
-        bool osSupported;
-        switch (Environment.OSVersion.Platform) {
-            case PlatformID.Win32Windows:
-            case PlatformID.Unix:
-                osSupported = true;
-                break;
-            default:
-                Console.WriteLine($"Native backend not supported on {Environment.OSVersion.Platform}");
-                osSupported = false;
-                break;
-        }
-
-        bool archSupported;
-        switch (RuntimeInformation.OSArchitecture) {
-            case Architecture.X64:
-                archSupported = true;
-                break;
-            default:
-                Console.WriteLine($"Native backend not supported on architecture {RuntimeInformation.OSArchitecture}");
-                archSupported = false;
-                break;
-        }
-
-        if (osSupported && archSupported) {
-            availableOptions.Add("Rust");
-            availableOptions.Add("GPU");
-        }
-
-        this._backendList = new RadioButtonList() {
-            ToolTip = "Select the backend to use for calculations. Which options are availasble depends on the platform, If you are using the GPU option, it is your responsibility to ensure libOpenCL is available!"
-        };
-
-        foreach (IListItem item in availableOptions) {
-            this._backendList.Items.Add(item);
-        }
-
-        this._backendList.SelectedKey = "C#";
-        this._backendList.SelectedIndexChanged += this.OnBackendSelectorChanged;
-
-        return new StackLayout() {
-            Items = {
-                "Backend",
-                this._backendList,
-            },
-            Padding = new Padding() {
-                Bottom = 10,
-                Top = 10,
+            bool osSupported;
+            switch (Environment.OSVersion.Platform) {
+                case PlatformID.Win32NT:
+                case PlatformID.Unix:
+                    osSupported = true;
+                    break;
+                default:
+                    Console.WriteLine($"Native backend not supported on {Environment.OSVersion.Platform}");
+                    osSupported = false;
+                    break;
             }
-        };
-    }
-    
-    private void OnBackendSelectorChanged(object? sender, EventArgs args) {
-        Platform p;
-        switch (this._backendList!.SelectedKey) {
-            case "C#":
-                p = InfoImp_Mandelbrot.Platform.CSharp;
-                break;
-            case "Rust":
-                p = InfoImp_Mandelbrot.Platform.Rust;
-                break;
-            case "GPU":
-                p = InfoImp_Mandelbrot.Platform.RustOcl;
-                break;
-            default:
-                throw new InvalidDataException($"Unknown platform key {this._backendList.SelectedKey}");
-        }
 
-        this._mandelView.BackendPlatform = p;
-        this._mandelView.Invalidate();
-    }
+            bool archSupported;
+            switch (RuntimeInformation.OSArchitecture) {
+                case Architecture.X64:
+                    archSupported = true;
+                    break;
+                default:
+                    Console.WriteLine($"Native backend not supported on architecture {RuntimeInformation.OSArchitecture}");
+                    archSupported = false;
+                    break;
+            }
+
+            if (osSupported && archSupported) {
+                availableOptions.Add("Rust");
+                availableOptions.Add("GPU");
+            }
+
+            this._backendList = new RadioButtonList() {
+                ToolTip = "Select the backend to use for calculations. Which options are availasble depends on the platform, If you are using the GPU option, it is your responsibility to ensure libOpenCL is available!"
+            };
+
+            foreach (IListItem item in availableOptions) {
+                this._backendList.Items.Add(item);
+            }
+
+            this._backendList.SelectedKey = "C#";
+            this._backendList.SelectedIndexChanged += this.OnBackendSelectorChanged;
+
+            return new StackLayout() {
+                Items = {
+                    "Backend",
+                    this._backendList,
+                },
+                Padding = new Padding() {
+                    Bottom = 10,
+                    Top = 10,
+                }
+            };
+        }
+        
+        private void OnBackendSelectorChanged(object? sender, EventArgs args) {
+            Platform p;
+            switch (this._backendList!.SelectedKey) {
+                case "C#":
+                    p = InfoImp_Mandelbrot.Platform.CSharp;
+                    break;
+                case "Rust":
+                    p = InfoImp_Mandelbrot.Platform.Rust;
+                    break;
+                case "GPU":
+                    p = InfoImp_Mandelbrot.Platform.RustOcl;
+                    break;
+                default:
+                    throw new InvalidDataException($"Unknown platform key {this._backendList.SelectedKey}");
+            }
+
+            this._mandelView.BackendPlatform = p;
+            this._mandelView.Invalidate();
+        }
         
         /// <summary>
         /// Get the color palette selector layout
@@ -349,8 +342,8 @@ namespace InfoImp_Mandelbrot {
         /// <param name="centerY">The new center Y coordinate</param>
         // ReSharper disable once InconsistentNaming
         private void UpdateMandelViewXY(int centerX, int centerY) {
-            (this._mandelView.XMin, this._mandelView.XMax) = CenterToBounds(centerX, MandelWidth);
-            (this._mandelView.YMin, this._mandelView.YMax) = CenterToBounds(centerY, MandelHeight);
+            this._mandelView.CX = centerX;
+            this._mandelView.CY = centerY;
         }
         
         /// <summary>
@@ -361,12 +354,10 @@ namespace InfoImp_Mandelbrot {
         /// <param name="sender">The object that triggered this event</param>
         /// <param name="args">The arguments to this event</param>
         private void OnMandelViewMouseDown(object? sender, MouseEventArgs args) {
-            int mouseX = (int) Math.Round(args.Location.X);
-            int mouseY = (int) Math.Round(args.Location.Y);
-            
-            (this._mandelView.XMin, this._mandelView.XMax) = CenterToBounds(mouseX, MandelWidth);
-            (this._mandelView.YMin, this._mandelView.YMax) = CenterToBounds(mouseY, MandelHeight);
             this.ApplyZoom(args.Buttons);
+
+            this._mandelView.CX = ((this._mandelView.CX - this._mandelView.Width / 2f) * this._mandelView.Scale + args.Location.X) / 100;
+            this._mandelView.CY = ((this._mandelView.CY - this._mandelView.Height / 2f) * this._mandelView.Scale + args.Location.Y) / 100;
             
             DateTimeOffset initialMouseDown = DateTimeOffset.Now;
             this._isMouseDown = true;
@@ -386,8 +377,8 @@ namespace InfoImp_Mandelbrot {
             });
             t.Start();
 
-            this._middleXField.Text = mouseX.ToString();
-            this._middleYField.Text = mouseY.ToString();
+            this._middleXField.Text = this._mandelView.CX.ToString(Thread.CurrentThread.CurrentCulture);
+            this._middleYField.Text = this._mandelView.CY.ToString(Thread.CurrentThread.CurrentCulture);
             
             this._mandelView.Invalidate();
         }
@@ -433,6 +424,9 @@ namespace InfoImp_Mandelbrot {
                 
             int centerX = int.Parse(this._middleXField.Text);
             int centerY = int.Parse(this._middleYField.Text);
+            this._mandelView.Width = int.Parse(this._widthField.Text);
+            this._mandelView.Height = int.Parse(this._heightField.Text);
+            
             this.UpdateMandelViewXY(centerX, centerY);    
             
             this._mandelView.Ready = true;
@@ -453,7 +447,6 @@ namespace InfoImp_Mandelbrot {
             return (min, max);
         }
         
-
         /// <summary>
         /// Build a TableRow with a label and a TextBox
         /// </summary>

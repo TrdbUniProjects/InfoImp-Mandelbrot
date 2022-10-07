@@ -11,17 +11,15 @@ lazy_static! {
 
 #[no_mangle]
 extern "C" fn ocl_calculate_mandelbrot_set(
-    xmin: i32,
-    xmax: i32,
-    ymin: i32,
-    ymax: i32,
+    cx: f64,
+    cy: f64,
+    width: i32,
+    height: i32,
     limit: i32,
     scale: f64,
     color_palette: i32,
     result: *mut i32
 ) {
-    let width = xmax - xmin;
-    let height = ymax - ymin;
     let palette_len = get_color_palette_len(color_palette);
 
     let mut pro_que = PRO_QUE.clone();
@@ -31,10 +29,10 @@ extern "C" fn ocl_calculate_mandelbrot_set(
     let kernel = pro_que
         .kernel_builder("mandelbrot")
         .arg(&buffer)
-        .arg(xmin)
-        .arg(xmax)
-        .arg(ymin)
-        .arg(ymin)
+        .arg(cx as f32)
+        .arg(cy as f32)
+        .arg(width)
+        .arg(height)
         .arg(limit as u32)
         .arg(scale as f32)
         .arg(palette_len as u32)

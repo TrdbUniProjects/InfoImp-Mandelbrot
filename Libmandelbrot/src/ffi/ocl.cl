@@ -6,10 +6,10 @@ uint getColorPaletteIdx(uint iteration, float a, float b, uint paletteSize) {
 
 __kernel void mandelbrot(
     __global uint* buffer,
-    int xmin,
-    int xmax,
-    int ymin,
-    int ymax,
+    float cx,
+    float cy,
+    int width,
+    int height,
     uint limit,
     float scale,
     uint paletteSize
@@ -17,10 +17,8 @@ __kernel void mandelbrot(
     int px = get_global_id(0);
     int py = get_global_id(1);
 
-    float distanceLimit = scale * ((float) ((xmax - xmin) + (ymax - ymin))) / 2.0;
-
-    float x = ((float) xmin) * scale + ((float) px) * scale;
-    float y = ((float) ymin) * scale + ((float) py) * scale;
+    float x = (px + (cx / (100 * scale)) - 200) * scale;
+    float y = (py + (cy / (100 * scale)) - 200) * scale;
 
     float a = 0;
     float b = 0;
@@ -31,7 +29,7 @@ __kernel void mandelbrot(
         b = 2 * a * b + y;
         a = tmpA;
         iteration++;
-    } while (distance((float2)(a, b), (float2)(0, 0)) < distanceLimit && iteration < limit);
+    } while (distance((float2)(a, b), (float2)(0, 0)) < 2 && iteration < limit);
 
-    buffer[(xmax - xmin) * px + py] = getColorPaletteIdx(iteration, a, b, paletteSize);
+    buffer[width * px + py] = getColorPaletteIdx(iteration, a, b, paletteSize);
 }
