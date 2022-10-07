@@ -356,8 +356,14 @@ namespace InfoImp_Mandelbrot {
         private void OnMandelViewMouseDown(object? sender, MouseEventArgs args) {
             this.ApplyZoom(args.Buttons);
 
-            this._mandelView.CX = ((this._mandelView.CX - this._mandelView.Width / 2f) * this._mandelView.Scale + args.Location.X) / 100;
-            this._mandelView.CY = ((this._mandelView.CY - this._mandelView.Height / 2f) * this._mandelView.Scale + args.Location.Y) / 100;
+            double normalMouseX = args.Location.X * 4 / this._mandelView.Width; 
+            double normalMouseY = args.Location.Y * 4 / this._mandelView.Height;
+
+            double centeredMouseX = normalMouseX - 2.0;
+            double centeredMouseY = normalMouseY - 2.0;
+
+            this._mandelView.CX = centeredMouseX;
+            this._mandelView.CY = centeredMouseY;
             
             DateTimeOffset initialMouseDown = DateTimeOffset.Now;
             this._isMouseDown = true;
